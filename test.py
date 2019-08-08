@@ -18,6 +18,8 @@ num_to_label_2_way_classification = ['false', 'true']
 
 def test(test_samples, test_output, word2num, model, classification_type, use_cuda = False):
 
+    model.eval()
+
     test_samples = dataset_to_variable(test_samples, use_cuda)
     out = open(test_output, 'w', buffering=1)
     acc = 0

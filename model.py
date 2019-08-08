@@ -16,37 +16,39 @@ class Net(nn.Module):
                  state_vocab_dim,
                  party_vocab_dim,
                  context_vocab_dim,
+                 num_classes,
 
                  statement_embed_dim = 100,
                  statement_kernel_num = 14,
                  statement_kernel_size = [3, 4, 5],
 
                  subject_embed_dim = 5,
+                 subject_hidden_dim = 5,
                  subject_lstm_nlayers = 2,
                  subject_lstm_bidirectional = True,
-                 subject_hidden_dim = 5,
 
                  speaker_embed_dim = 5,
 
                  speaker_pos_embed_dim = 10,
+                 speaker_pos_hidden_dim = 5,
                  speaker_pos_lstm_nlayers = 2,
                  speaker_pos_lstm_bidirectional = True,
-                 speaker_pos_hidden_dim = 5,
 
                  state_embed_dim = 5,
 
                  party_embed_dim = 5,
 
                  context_embed_dim = 20,
+                 context_hidden_dim = 6,
                  context_lstm_nlayers = 2,
                  context_lstm_bidirectional = True,
-                 context_hidden_dim = 6,
                  dropout = 0.5):
 
         # Statement CNN
         super(Net, self).__init__()
 
         # import pdb; pdb.set_trace()
+        self.num_classes = num_classes
 
         self.statement_vocab_dim = statement_vocab_dim
         self.statement_embed_dim = statement_embed_dim
@@ -55,6 +57,8 @@ class Net(nn.Module):
 
         self.statement_embedding = nn.Embedding(self.statement_vocab_dim, self.statement_embed_dim)
         self.statement_convs = nn.ModuleList()
+        # conv layer with in_channel = 1, out_channel = statement_kernel_num 
+        # and kernel spatial size (rectangle) = (kernel_, statement_embed_dim)
         for kernel_ in self.statement_kernel_size:
             self.statement_convs.append(nn.Conv2d(1, self.statement_kernel_num, (kernel_, self.statement_embed_dim)))
 
@@ -132,7 +136,7 @@ class Net(nn.Module):
                             + self.state_embed_dim
                             + self.party_embed_dim
                             + self.context_lstm_nlayers * self.context_lstm_num_direction,
-                            6)
+                            self.num_classes)
 
     def forward(self, sample):
 
@@ -149,16 +153,16 @@ class Net(nn.Module):
                   # TODO: Increase batch number
 
         # Statement
-        # import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
         statement_ = self.statement_embedding(statement).unsqueeze(0) # 1*W*D -> 1*1*W*D
-        statement_ = [F.relu(conv(statement_)).squeeze(3) for conv in self.statement_convs] # 1*1*W*1 -> 1*Co*W x [len(convs)]
-        statement_ = [F.max_pool1d(i, i.size(2)).squeeze(2) for i in statement_] # 1*Co*1 -> 1*Co x len(convs)
+        statement_ = [F.relu(conv(statement_)).squeeze(3) for conv in self.statement_convs] # 1*1*W*1 -> 1*Conv-filters*(W-1) x len(convs)
+        statement_ = [F.max_pool1d(i, i.size(2)).squeeze(2) for i in statement_] # 1*Co*1 -> 1*Conv-filters x len(convs)
         statement_ = torch.cat(statement_, 1)  # 1*len(convs)
 
         # Subject
         subject_ = self.subject_embedding(subject) # 1*W*D
-        _, (subject_, _) = self.subject_lstm(subject_) # 1*(layer x dir)*hidden
-        subject_ = F.max_pool1d(subject_, self.subject_hidden_dim).view(1, -1) # 1*(layer x dir)*1 -> 1*(layer x dir)
+        _, (subject_, _) = self.subject_lstm(subject_) # (layer x dir) * batch * hidden
+        subject_ = F.max_pool1d(subject_, self.subject_hidden_dim).view(1, -1) # (layer x dir) * batch * 1 -> 1*(layer x dir)
 
         # Speaker
         speaker_ = self.speaker_embedding(speaker).squeeze(0) # 1*1*D -> 1*D

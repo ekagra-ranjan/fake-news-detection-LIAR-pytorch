@@ -14,6 +14,7 @@ def train(train_samples,
           word2num,
           lr,
           epoch,
+          num_classes,
           use_cuda):
 
     print('Training...')
@@ -41,7 +42,8 @@ def train(train_samples,
                 len(speaker_pos_word2num),
                 len(state_word2num),
                 len(party_word2num),
-                len(context_word2num))
+                len(context_word2num),
+                num_classes)
     if use_cuda: device = torch.device('cuda')
     else: device = torch.device('cpu')
     model.to(device)
@@ -63,9 +65,11 @@ def train(train_samples,
 
             optimizer.zero_grad()
 
+            # import pdb; pdb.set_trace()
             prediction = model(sample)
             label = Variable(torch.LongTensor([sample.label])).to(device)
             # loss = F.cross_entropy(prediction, label)
+            # print("prediction:", prediction, " label:", label)
             loss = F.nll_loss(prediction, label)
             loss.backward()
             optimizer.step()
@@ -89,10 +93,13 @@ def train(train_samples,
 
 
 def valid(valid_samples, word2num, model):
+
+    model.eval()
     
     acc = 0
     for sample in valid_samples:
         prediction = model(sample)
+        # import pdb; pdb.set_trace()
         prediction = int(np.argmax(prediction.cpu().data.numpy()))
         if prediction == sample.label:
             acc += 1
