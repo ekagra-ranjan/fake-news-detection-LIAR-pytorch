@@ -211,6 +211,7 @@ def train_data_prepare(train_filename, num_classes, dataset_name):
 	print("  Party Vocabulary Size: " + str(len(party_word2num)))
 	print("  Context Vocabulary Size: " + str(len(context_word2num)))
 	print("  Justification Vocabulary Size: " + str(len(justification_word2num)))
+	print("  Vocabulary Size: " + str(len(all_word2num)))
 
 	return train_samples, word2num
 
@@ -242,13 +243,7 @@ def test_data_prepare(test_file, word2num, phase, num_classes, dataset_name):
 	fault=0
 	for line in test_data.strip().split('\n'):
 		tmp = line.strip().split('\t')
-		# if phase == 'test':
-		#     p = DataSample('test', tmp[1], tmp[2], tmp[3], tmp[4], tmp[5], tmp[6])
-		# elif phase == 'valid':
-		# if len(tmp)!=16:
-		# 	fault +=1
-		# 	print("len(tmp):", len(tmp), " ", tmp)
-
+		
 		if dataset_name == 'LIAR':
 			while len(tmp) < 15:
 				tmp.append('')

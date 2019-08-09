@@ -5,7 +5,7 @@ from torch.autograd import Variable
 import numpy as np
 
 
-class Net(nn.Module):
+class BaselineNet(nn.Module):
 
 	def __init__(self,
 
@@ -36,7 +36,7 @@ class Net(nn.Module):
 				 dropout_features = 0.5):
 
 		# Statement CNN
-		super(Net, self).__init__()
+		super(BaselineNet, self).__init__()
 
 		# import pdb; pdb.set_trace()
 		self.num_classes = num_classes
@@ -173,22 +173,9 @@ class Net(nn.Module):
 		_, (justification_, _) = self.justification_lstm(justification_)
 		justification_ = F.max_pool1d(justification_, self.justification_hidden_dim).view(1, -1)
 		
-		# import pdb; pdb.set_trace()
 		# Statement
-		query = torch.cat((subject_, speaker_, speaker_pos_, state_, party_, context_, justification_), 1)
-		query = F.leaky_relu(self.fc_query(query))
-		query = self.dropout_query(query)
-		query_att = self.fc_att(query).view(1, -1)
-
-		# Contextualize the conv filters
-		query_conv = self.fc_conv(query).view(1, -1)
-		for conv in self.statement_convs:
-			conv.weight = nn.Parameter(conv.weight * query_conv)
-
+		
 		statement_ = self.embedding(statement).unsqueeze(0) # 1*W*D -> 1*1*W*D
-		# attention
-		alpha = (query_att * statement_).sum(dim=-1).view(-1, 1)
-		statement_ = alpha * statement_
 		statement_ = [F.relu(conv(statement_)).squeeze(3) for conv in self.statement_convs] # 1*1*W*1 -> 1*Conv-filters*(W-1) x len(convs)
 		statement_ = [F.max_pool1d(i, i.size(2)).squeeze(2) for i in statement_] # 1*Conv-filters*1 -> 1*Conv-filters x len(convs)
 		statement_ = torch.cat(statement_, 1)  # 1*len(convs)

@@ -6,6 +6,7 @@ from data import train_data_prepare
 from train import train
 from test import test, test_data_prepare
 from model import Net
+from model_baseline import BaselineNet
 import os
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
@@ -25,49 +26,24 @@ def loadModel(word2num, num_classes, hyper):
     # Construct model instance
     print('  Constructing network model...')
     model = Net(
-                # len(statement_word2num),
-                # len(subject_word2num),
-                # len(speaker_word2num),
-                # len(speaker_pos_word2num),
-                # len(state_word2num),
-                # len(party_word2num),
-                # len(context_word2num),
-                # len(justification_word2num),
-                len(all_word2num),
-                len(all_word2num),
-                len(all_word2num),
-                len(all_word2num),
-                len(all_word2num),
-                len(all_word2num),
-                len(all_word2num),
                 len(all_word2num),
                 num_classes,
-                statement_embed_dim = hyper['statement_embed_dim'],
+                embed_dim = hyper['embed_dim'],
                 statement_kernel_num = hyper['statement_kernel_num'],
                 statement_kernel_size = hyper['statement_kernel_size'],
 
-                subject_embed_dim = hyper['subject_embed_dim'],
                 subject_hidden_dim = hyper['subject_hidden_dim'],
                 subject_lstm_nlayers = hyper['subject_lstm_nlayers'],
                 subject_lstm_bidirectional = hyper['subject_lstm_bidirectional'],
 
-                speaker_embed_dim = hyper['speaker_embed_dim'],
-
-                speaker_pos_embed_dim = hyper['speaker_pos_embed_dim'],
                 speaker_pos_hidden_dim = hyper['speaker_pos_hidden_dim'],
                 speaker_pos_lstm_nlayers = hyper['speaker_pos_lstm_nlayers'],
                 speaker_pos_lstm_bidirectional = hyper['speaker_pos_lstm_bidirectional'],
 
-                state_embed_dim = hyper['state_embed_dim'],
-
-                party_embed_dim = hyper['party_embed_dim'],
-
-                context_embed_dim = hyper['context_embed_dim'],
                 context_hidden_dim = hyper['context_hidden_dim'],
                 context_lstm_nlayers = hyper['context_lstm_nlayers'],
                 context_lstm_bidirectional = hyper['context_lstm_bidirectional'],
 
-                justification_embed_dim = hyper['justification_embed_dim'],
                 justification_hidden_dim = hyper['justification_hidden_dim'],
                 justification_lstm_nlayers = hyper['justification_lstm_nlayers'],
                 justification_lstm_bidirectional = hyper['justification_lstm_bidirectional'],
@@ -106,7 +82,7 @@ def driver(train_file, valid_file, test_file, output_file, dataset, mode, pathMo
     lr = hyper['lr']
     epoch = hyper['epoch']
     use_cuda = True
-    num_classes = 2
+    num_classes = 6
 
 
     assert num_classes in [2, 6]
@@ -157,40 +133,30 @@ def driver(train_file, valid_file, test_file, output_file, dataset, mode, pathMo
 #---HYPERPARAMETERS
 
 hyper = {
-'epoch': 3,
+'epoch': 10,
 'lr': 0.001,
-'statement_embed_dim': 100,
-'statement_kernel_num': 15,
+'embed_dim': 100,
+'statement_kernel_num': 64,
 'statement_kernel_size': [3, 4, 5],
 
-'subject_embed_dim': 5,
-'subject_hidden_dim': 5,
+'subject_hidden_dim': 8,
 'subject_lstm_nlayers': 2,
 'subject_lstm_bidirectional': True,
 
-'speaker_embed_dim': 5,
-
-'speaker_pos_embed_dim': 10,
-'speaker_pos_hidden_dim': 5,
+'speaker_pos_hidden_dim': 8,
 'speaker_pos_lstm_nlayers': 2,
 'speaker_pos_lstm_bidirectional': True,
 
-'state_embed_dim': 5,
-
-'party_embed_dim': 5,
-
-'context_embed_dim': 20,
-'context_hidden_dim': 6,
+'context_hidden_dim': 16,
 'context_lstm_nlayers': 2,
 'context_lstm_bidirectional': True,
 
-'justification_embed_dim': 100,
-'justification_hidden_dim': 15,
+'justification_hidden_dim': 32,
 'justification_lstm_nlayers': 2,
 'justification_lstm_bidirectional': True,
 
-'dropout_query': 0.5,
-'dropout_features': 0.5
+'dropout_query': 0.7,
+'dropout_features': 0.7
 }
 
 dataset_name = 'LIAR-PLUS'
