@@ -16,6 +16,7 @@ class Net(nn.Module):
                  state_vocab_dim,
                  party_vocab_dim,
                  context_vocab_dim,
+                 justification_vocab_dim,
                  num_classes,
 
                  statement_embed_dim = 100,
@@ -42,6 +43,12 @@ class Net(nn.Module):
                  context_hidden_dim = 6,
                  context_lstm_nlayers = 2,
                  context_lstm_bidirectional = True,
+
+                 justification_embed_dim = 20,
+                 justification_hidden_dim = 6,
+                 justification_lstm_nlayers = 2,
+                 justification_lstm_bidirectional = True,
+
                  dropout = 0.5):
 
         # Statement CNN
@@ -128,6 +135,22 @@ class Net(nn.Module):
             bidirectional = context_lstm_bidirectional
         )
 
+        # Justification
+        self.justification_vocab_dim = justification_vocab_dim
+        self.justification_embed_dim = justification_embed_dim
+        self.justification_lstm_nlayers = justification_lstm_nlayers
+        self.justification_lstm_num_direction = 2 if justification_lstm_bidirectional else 1
+        self.justification_hidden_dim = justification_hidden_dim
+
+        self.justification_embedding = nn.Embedding(self.justification_vocab_dim, self.justification_embed_dim)
+        self.justification_lstm = nn.LSTM(
+            input_size = self.justification_embed_dim,
+            hidden_size = self.justification_hidden_dim,
+            num_layers = self.justification_lstm_nlayers,
+            batch_first = True,
+            bidirectional = justification_lstm_bidirectional
+        )
+
         self.dropout = nn.Dropout(dropout)
         self.fc = nn.Linear(len(self.statement_kernel_size) * self.statement_kernel_num
                             + self.subject_lstm_nlayers * self.subject_lstm_num_direction
@@ -135,7 +158,8 @@ class Net(nn.Module):
                             + self.speaker_pos_lstm_nlayers * self.speaker_pos_lstm_num_direction
                             + self.state_embed_dim
                             + self.party_embed_dim
-                            + self.context_lstm_nlayers * self.context_lstm_num_direction,
+                            + self.context_lstm_nlayers * self.context_lstm_num_direction
+                            + self.justification_lstm_nlayers * self.justification_lstm_num_direction,
                             self.num_classes)
 
     def forward(self, sample):
@@ -148,12 +172,13 @@ class Net(nn.Module):
         state = Variable(sample.state).unsqueeze(0)
         party = Variable(sample.party).unsqueeze(0)
         context = Variable(sample.context).unsqueeze(0)
+        justification = Variable(sample.justification).unsqueeze(0)
 
         batch = 1 # Current support one sample per time
                   # TODO: Increase batch number
 
         # Statement
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         statement_ = self.statement_embedding(statement).unsqueeze(0) # 1*W*D -> 1*1*W*D
         statement_ = [F.relu(conv(statement_)).squeeze(3) for conv in self.statement_convs] # 1*1*W*1 -> 1*Conv-filters*(W-1) x len(convs)
         statement_ = [F.max_pool1d(i, i.size(2)).squeeze(2) for i in statement_] # 1*Co*1 -> 1*Conv-filters x len(convs)
@@ -183,8 +208,14 @@ class Net(nn.Module):
         _, (context_, _) = self.context_lstm(context_)
         context_ = F.max_pool1d(context_, self.context_hidden_dim).view(1, -1)
 
+        # Justification
+        # import pdb; pdb.set_trace()
+        justification_ = self.justification_embedding(justification)
+        _, (justification_, _) = self.justification_lstm(justification_)
+        justification_ = F.max_pool1d(justification_, self.justification_hidden_dim).view(1, -1)
+
         # Concatenate
-        features = torch.cat((statement_, subject_, speaker_, speaker_pos_, state_, party_, context_), 1)
+        features = torch.cat((statement_, subject_, speaker_, speaker_pos_, state_, party_, context_, justification_), 1)
         features = self.dropout(features)
         out = self.fc(features)
         out = F.log_softmax(out, dim=-1)

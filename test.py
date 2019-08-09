@@ -16,7 +16,7 @@ num_to_label_6_way_classification = [
 
 num_to_label_2_way_classification = ['false', 'true']
 
-def test(test_samples, test_output, word2num, model, classification_type, use_cuda = False):
+def test(test_samples, test_output, model, classification_type, use_cuda = False):
 
     model.eval()
 
@@ -38,4 +38,6 @@ def test(test_samples, test_output, word2num, model, classification_type, use_cu
     acc /= len(test_samples)
     print('  Test Accuracy: {:.3f}'.format(acc))
     out.close()
+
+    return acc
 

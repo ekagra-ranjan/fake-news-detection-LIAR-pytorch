@@ -11,56 +11,38 @@ from data import dataset_to_variable
 
 def train(train_samples,
           valid_samples,
-          word2num,
           lr,
           epoch,
+          model,
           num_classes,
           use_cuda):
 
-    print('Training...')
-
-    # Prepare training data
-    print('  Preparing training data...')
-    statement_word2num = word2num[0]
-    subject_word2num = word2num[1]
-    speaker_word2num = word2num[2]
-    speaker_pos_word2num = word2num[3]
-    state_word2num = word2num[4]
-    party_word2num = word2num[5]
-    context_word2num = word2num[6]
 
     train_data = train_samples
     train_data = dataset_to_variable(train_data, use_cuda)
     valid_data = valid_samples
     valid_data = dataset_to_variable(valid_data, use_cuda)
 
-    # Construct model instance
-    print('  Constructing network model...')
-    model = Net(len(statement_word2num),
-                len(subject_word2num),
-                len(speaker_word2num),
-                len(speaker_pos_word2num),
-                len(state_word2num),
-                len(party_word2num),
-                len(context_word2num),
-                num_classes)
-    if use_cuda: device = torch.device('cuda')
-    else: device = torch.device('cpu')
+    # model cuda
+    device = torch.device('cuda') if use_cuda else torch.device('cpu')
     model.to(device)
 
     # Start training
-    print('  Start training')
+    print('\n  Start training')
 
     optimizer = optim.Adam(model.parameters(), lr = lr)
-    model.train()
 
     step = 0
+    val_acc = 0
     display_interval = 500
     tick = time.time()
 
     for epoch_ in range(epoch):
+        
+        model.train()
         random.shuffle(train_data)
         total_loss = 0
+        
         for sample in train_data:
 
             optimizer.zero_grad()
@@ -80,19 +62,22 @@ def train(train_samples,
 
             total_loss += loss.cpu().data.numpy()
 
+            # if step %100 == 0:
+            #     break
+
         print('  [INFO] --- Epoch '+str(epoch_+1)+' complete. Avg. Loss: {:.3f}'.format(total_loss/len(train_data)) + '  Time taken: {:.3f}' .format(time.time()-tick) )
 
-        valid(valid_data, word2num, model)
+        val_acc = valid(valid_data, model)
 
-    return model
-
-
+    return model, val_acc
 
 
 
 
 
-def valid(valid_samples, word2num, model):
+
+
+def valid(valid_samples, model):
 
     model.eval()
     
@@ -105,3 +90,5 @@ def valid(valid_samples, word2num, model):
             acc += 1
     acc /= len(valid_samples)
     print('  Validation Accuracy: {:.3f}'.format(acc))
+
+    return acc

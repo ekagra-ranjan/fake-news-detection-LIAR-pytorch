@@ -37,6 +37,7 @@ def dataset_to_variable(dataset, use_cuda):
 		dataset[i].state = torch.LongTensor([dataset[i].state])
 		dataset[i].party = torch.LongTensor([dataset[i].party])
 		dataset[i].context = torch.LongTensor(dataset[i].context)
+		dataset[i].justification = torch.LongTensor(dataset[i].justification)
 		if use_cuda:
 			dataset[i].statement = dataset[i].statement.cuda()
 			dataset[i].subject = dataset[i].subject.cuda()
@@ -45,6 +46,7 @@ def dataset_to_variable(dataset, use_cuda):
 			dataset[i].state = dataset[i].state.cuda()
 			dataset[i].party = dataset[i].party.cuda()
 			dataset[i].context = dataset[i].context.cuda()
+			dataset[i].justification = dataset[i].justification.cuda()
 	return dataset
 
 class DataSample:
@@ -57,13 +59,11 @@ class DataSample:
 		state,
 		party,
 		context,
+		justification,
 		num_classes,
 		dataset_name):
 
 		#---choose 6 way or binary classification 
-		# if dataset_name == 'LIAR-PLUS':
-		# 	self
-		# import pdb; pdb.set_trace()
 		if num_classes == 2:
 			self.label = label_to_number_2_way_classification.get(label, -1)
 		else:
@@ -79,7 +79,8 @@ class DataSample:
 		self.state = state
 		self.party = party
 		self.context = context.strip().split()
-
+		self.justification = re.sub('[().]', '', justification).strip().split()
+		
 		if len(self.statement) == 0:
 			self.statement = ['<no>']
 		if len(self.subject) == 0:
@@ -94,6 +95,8 @@ class DataSample:
 			self.party = '<no>'
 		if len(self.context) == 0:
 			self.context = ['<no>']
+		if len(self.justification) == 0:
+			self.justification = ['<no>']
 
 #---Train data prep
 def count_in_vocab(dict, word):
@@ -117,6 +120,7 @@ def train_data_prepare(train_filename, num_classes, dataset_name):
 	state_word2num = {'<unk>' : 0}
 	party_word2num = {'<unk>' : 0}
 	context_word2num = {'<unk>' : 0}
+	justification_word2num = {'<unk>' : 0}
 
 	fault=0
 	try:
@@ -132,19 +136,21 @@ def train_data_prepare(train_filename, num_classes, dataset_name):
 			# 	# import pdb; pdb.set_trace()
 			# 	fault +=1
 			# 	print("len(tmp):", len(tmp), " ", tmp )
-			import pdb; pdb.set_trace()
-			
+			# import pdb; pdb.set_trace()
+
 			if dataset_name == 'LIAR':
+				#---LIAR
 				while len(tmp) < 14:
 					tmp.append('')
-				p = DataSample(tmp[1], tmp[2], tmp[3], tmp[4], tmp[5] , tmp[6], tmp[7], tmp[13], num_classes, dataset_name)
+				p = DataSample(tmp[1], tmp[2], tmp[3], tmp[4], tmp[5] , tmp[6], tmp[7], tmp[13], '', num_classes, dataset_name)
 			else:
+				#---LIAR-PLUS
 				while len(tmp) < 16:
 					tmp.append('')
 				if tmp[2] not in num_to_label_6_way_classification:
-					p = DataSample(tmp[1], tmp[2], tmp[3], tmp[4], tmp[5] , tmp[6], tmp[7], tmp[13], num_classes, dataset_name)
+					p = DataSample(tmp[1], tmp[2], tmp[3], tmp[4], tmp[5] , tmp[6], tmp[7], tmp[13], tmp[14], num_classes, dataset_name)
 				else:
-					p = DataSample(tmp[2], tmp[3], tmp[4], tmp[5], tmp[6] , tmp[7], tmp[8], tmp[14], num_classes, dataset_name)
+					p = DataSample(tmp[2], tmp[3], tmp[4], tmp[5], tmp[6] , tmp[7], tmp[8], tmp[14], tmp[15], num_classes, dataset_name)
 
 			for i in range(len(p.statement)):
 				p.statement[i] = count_in_vocab(statement_word2num, p.statement[i])
@@ -157,6 +163,8 @@ def train_data_prepare(train_filename, num_classes, dataset_name):
 			p.party = count_in_vocab(party_word2num, p.party)
 			for i in range(len(p.context)):
 				p.context[i] = count_in_vocab(context_word2num, p.context[i])
+			for i in range(len(p.justification)):
+				p.justification[i] = count_in_vocab(justification_word2num, p.justification[i])
 			
 			train_samples.append(p)
 	except:
@@ -171,7 +179,8 @@ def train_data_prepare(train_filename, num_classes, dataset_name):
 				speaker_pos_word2num,
 				state_word2num,
 				party_word2num,
-				context_word2num]
+				context_word2num,
+				justification_word2num]
 
 	print("  "+str(len(train_samples))+" samples")
 
@@ -182,6 +191,7 @@ def train_data_prepare(train_filename, num_classes, dataset_name):
 	print("  State Vocabulary Size: " + str(len(state_word2num)))
 	print("  Party Vocabulary Size: " + str(len(party_word2num)))
 	print("  Context Vocabulary Size: " + str(len(context_word2num)))
+	print("  Justification Vocabulary Size: " + str(len(justification_word2num)))
 
 	return train_samples, word2num
 
@@ -205,6 +215,7 @@ def test_data_prepare(test_file, word2num, phase, num_classes, dataset_name):
 	state_word2num = word2num[4]
 	party_word2num = word2num[5]
 	context_word2num = word2num[6]
+	justification_word2num = word2num[7]
 
 	test_samples = []
 
@@ -219,16 +230,16 @@ def test_data_prepare(test_file, word2num, phase, num_classes, dataset_name):
 		# 	print("len(tmp):", len(tmp), " ", tmp)
 
 		if dataset_name == 'LIAR':
-			while len(tmp) < 14:
+			while len(tmp) < 15:
 				tmp.append('')
-			p = DataSample(tmp[1], tmp[2], tmp[3], tmp[4], tmp[5] , tmp[6], tmp[7], tmp[13], num_classes, dataset_name)
+			p = DataSample(tmp[1], tmp[2], tmp[3], tmp[4], tmp[5] , tmp[6], tmp[7], tmp[13], '', num_classes, dataset_name)
 		else:
 			while len(tmp) < 16:
 				tmp.append('')
 			if tmp[2] not in num_to_label_6_way_classification:
-				p = DataSample(tmp[1], tmp[2], tmp[3], tmp[4], tmp[5] , tmp[6], tmp[7], tmp[13], num_classes, dataset_name)
+				p = DataSample(tmp[1], tmp[2], tmp[3], tmp[4], tmp[5] , tmp[6], tmp[7], tmp[13], tmp[14], num_classes, dataset_name)
 			else:
-				p = DataSample(tmp[2], tmp[3], tmp[4], tmp[5], tmp[6] , tmp[7], tmp[8], tmp[14], num_classes, dataset_name)
+				p = DataSample(tmp[2], tmp[3], tmp[4], tmp[5], tmp[6] , tmp[7], tmp[8], tmp[14], tmp[15], num_classes, dataset_name)
 
 		for i in range(len(p.statement)):
 			p.statement[i] = find_word(statement_word2num, p.statement[i])
@@ -241,6 +252,8 @@ def test_data_prepare(test_file, word2num, phase, num_classes, dataset_name):
 		p.party = find_word(party_word2num, p.party)
 		for i in range(len(p.context)):
 			p.context[i] = find_word(context_word2num, p.context[i])
+		for i in range(len(p.justification)):
+			p.justification[i] = find_word(justification_word2num, p.justification[i])
 
 		test_samples.append(p)
 
