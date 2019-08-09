@@ -20,17 +20,27 @@ def loadModel(word2num, num_classes, hyper):
     party_word2num = word2num[5]
     context_word2num = word2num[6]
     justification_word2num = word2num[7]
+    all_word2num = word2num[8]
     
     # Construct model instance
     print('  Constructing network model...')
-    model = Net(len(statement_word2num),
-                len(subject_word2num),
-                len(speaker_word2num),
-                len(speaker_pos_word2num),
-                len(state_word2num),
-                len(party_word2num),
-                len(context_word2num),
-                len(justification_word2num),
+    model = Net(
+                # len(statement_word2num),
+                # len(subject_word2num),
+                # len(speaker_word2num),
+                # len(speaker_pos_word2num),
+                # len(state_word2num),
+                # len(party_word2num),
+                # len(context_word2num),
+                # len(justification_word2num),
+                len(all_word2num),
+                len(all_word2num),
+                len(all_word2num),
+                len(all_word2num),
+                len(all_word2num),
+                len(all_word2num),
+                len(all_word2num),
+                len(all_word2num),
                 num_classes,
                 statement_embed_dim = hyper['statement_embed_dim'],
                 statement_kernel_num = hyper['statement_kernel_num'],
@@ -62,7 +72,8 @@ def loadModel(word2num, num_classes, hyper):
                 justification_lstm_nlayers = hyper['justification_lstm_nlayers'],
                 justification_lstm_bidirectional = hyper['justification_lstm_bidirectional'],
 
-                dropout = 0.5
+                dropout_query = hyper['dropout_query'],
+                dropout_features = hyper['dropout_features']
                 )
 
     print("Hyperparams are:")
@@ -110,12 +121,9 @@ def driver(train_file, valid_file, test_file, output_file, dataset, mode, pathMo
         model = loadModel(word2num, num_classes, hyper)
         
         #---train and validate
-        model, val_acc = train(train_samples, valid_samples, lr, epoch, model, num_classes, use_cuda)
+        model, val_acc = train(train_samples, valid_samples, lr, epoch, model, num_classes, use_cuda, word2num, hyper, nnArchitecture, timestampLaunch)
 
         #---save model and embeddings
-        modelName = 'm-' + nnArchitecture + '-num_classes-'+ str(num_classes) + '-epoch-' + str(epoch) + '-val_acc-{:.3f}'.format(val_acc) + '-' + str(timestampLaunch) + '.pth.tar'
-        torch.save({'state_dict': model.state_dict(), 'word2num': word2num, 'hyper': hyper}, './models/' + modelName)
-        print("Saved: ", modelName)
         pathModel = None
 
 
@@ -149,7 +157,7 @@ def driver(train_file, valid_file, test_file, output_file, dataset, mode, pathMo
 #---HYPERPARAMETERS
 
 hyper = {
-'epoch': 10,
+'epoch': 3,
 'lr': 0.001,
 'statement_embed_dim': 100,
 'statement_kernel_num': 15,
@@ -181,7 +189,8 @@ hyper = {
 'justification_lstm_nlayers': 2,
 'justification_lstm_bidirectional': True,
 
-'dropout': 0.5
+'dropout_query': 0.5,
+'dropout_features': 0.5
 }
 
 dataset_name = 'LIAR-PLUS'

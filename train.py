@@ -15,7 +15,11 @@ def train(train_samples,
           epoch,
           model,
           num_classes,
-          use_cuda):
+          use_cuda,
+          word2num,
+          hyper,
+          nnArchitecture,
+          timestampLaunch):
 
 
     train_data = train_samples
@@ -62,12 +66,17 @@ def train(train_samples,
 
             total_loss += loss.cpu().data.numpy()
 
-            # if step %100 == 0:
-            #     break
+            if step %100 == 0:
+                break
 
         print('  [INFO] --- Epoch '+str(epoch_+1)+' complete. Avg. Loss: {:.3f}'.format(total_loss/len(train_data)) + '  Time taken: {:.3f}' .format(time.time()-tick) )
-
         val_acc = valid(valid_data, model)
+
+        modelName = 'm-' + nnArchitecture + '-num_classes-'+ str(num_classes) + '-epoch-' + str(epoch_) + '-val_acc-{:.3f}'.format(val_acc) + '-' + str(timestampLaunch) + '.pth.tar'
+        torch.save({'state_dict': model.state_dict(), 'word2num': word2num, 'hyper': hyper}, './models/' + modelName)
+        print("Saved: ", modelName)
+        
+
 
     return model, val_acc
 

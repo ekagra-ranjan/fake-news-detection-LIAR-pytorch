@@ -121,6 +121,7 @@ def train_data_prepare(train_filename, num_classes, dataset_name):
 	party_word2num = {'<unk>' : 0}
 	context_word2num = {'<unk>' : 0}
 	justification_word2num = {'<unk>' : 0}
+	all_word2num = {'<unk>' : 0}
 
 	fault=0
 	try:
@@ -152,19 +153,36 @@ def train_data_prepare(train_filename, num_classes, dataset_name):
 				else:
 					p = DataSample(tmp[2], tmp[3], tmp[4], tmp[5], tmp[6] , tmp[7], tmp[8], tmp[14], tmp[15], num_classes, dataset_name)
 
+			# for i in range(len(p.statement)):
+			# 	p.statement[i] = count_in_vocab(statement_word2num, p.statement[i])
+			# for i in range(len(p.subject)):
+			# 	p.subject[i] = count_in_vocab(subject_word2num, p.subject[i])
+			# p.speaker = count_in_vocab(speaker_word2num, p.speaker)
+			# for i in range(len(p.speaker_pos)):
+			# 	p.speaker_pos[i] = count_in_vocab(speaker_pos_word2num, p.speaker_pos[i])
+			# p.state = count_in_vocab(state_word2num, p.state)
+			# p.party = count_in_vocab(party_word2num, p.party)
+			# for i in range(len(p.context)):
+			# 	p.context[i] = count_in_vocab(context_word2num, p.context[i])
+			# for i in range(len(p.justification)):
+			# 	p.justification[i] = count_in_vocab(justification_word2num, p.justification[i])
+
+
 			for i in range(len(p.statement)):
-				p.statement[i] = count_in_vocab(statement_word2num, p.statement[i])
+				p.statement[i] = count_in_vocab(all_word2num, p.statement[i])
 			for i in range(len(p.subject)):
-				p.subject[i] = count_in_vocab(subject_word2num, p.subject[i])
-			p.speaker = count_in_vocab(speaker_word2num, p.speaker)
+				p.subject[i] = count_in_vocab(all_word2num, p.subject[i])
+			p.speaker = count_in_vocab(all_word2num, p.speaker)
 			for i in range(len(p.speaker_pos)):
-				p.speaker_pos[i] = count_in_vocab(speaker_pos_word2num, p.speaker_pos[i])
-			p.state = count_in_vocab(state_word2num, p.state)
-			p.party = count_in_vocab(party_word2num, p.party)
+				p.speaker_pos[i] = count_in_vocab(all_word2num, p.speaker_pos[i])
+			p.state = count_in_vocab(all_word2num, p.state)
+			p.party = count_in_vocab(all_word2num, p.party)
 			for i in range(len(p.context)):
-				p.context[i] = count_in_vocab(context_word2num, p.context[i])
+				p.context[i] = count_in_vocab(all_word2num, p.context[i])
 			for i in range(len(p.justification)):
-				p.justification[i] = count_in_vocab(justification_word2num, p.justification[i])
+				p.justification[i] = count_in_vocab(all_word2num, p.justification[i])
+
+
 			
 			train_samples.append(p)
 	except:
@@ -180,7 +198,8 @@ def train_data_prepare(train_filename, num_classes, dataset_name):
 				state_word2num,
 				party_word2num,
 				context_word2num,
-				justification_word2num]
+				justification_word2num,
+				all_word2num]
 
 	print("  "+str(len(train_samples))+" samples")
 
@@ -216,6 +235,7 @@ def test_data_prepare(test_file, word2num, phase, num_classes, dataset_name):
 	party_word2num = word2num[5]
 	context_word2num = word2num[6]
 	justification_word2num = word2num[7]
+	all_word2num = word2num[8]
 
 	test_samples = []
 
@@ -241,19 +261,35 @@ def test_data_prepare(test_file, word2num, phase, num_classes, dataset_name):
 			else:
 				p = DataSample(tmp[2], tmp[3], tmp[4], tmp[5], tmp[6] , tmp[7], tmp[8], tmp[14], tmp[15], num_classes, dataset_name)
 
+		# for i in range(len(p.statement)):
+		# 	p.statement[i] = find_word(statement_word2num, p.statement[i])
+		# for i in range(len(p.subject)):
+		# 	p.subject[i] = find_word(subject_word2num, p.subject[i])
+		# p.speaker = find_word(speaker_word2num, p.speaker)
+		# for i in range(len(p.speaker_pos)):
+		# 	p.speaker_pos[i] = find_word(speaker_pos_word2num, p.speaker_pos[i])
+		# p.state = find_word(state_word2num, p.state)
+		# p.party = find_word(party_word2num, p.party)
+		# for i in range(len(p.context)):
+		# 	p.context[i] = find_word(context_word2num, p.context[i])
+		# for i in range(len(p.justification)):
+		# 	p.justification[i] = find_word(justification_word2num, p.justification[i])
+
+
 		for i in range(len(p.statement)):
-			p.statement[i] = find_word(statement_word2num, p.statement[i])
+			p.statement[i] = find_word(all_word2num, p.statement[i])
 		for i in range(len(p.subject)):
-			p.subject[i] = find_word(subject_word2num, p.subject[i])
-		p.speaker = find_word(speaker_word2num, p.speaker)
+			p.subject[i] = find_word(all_word2num, p.subject[i])
+		p.speaker = find_word(all_word2num, p.speaker)
 		for i in range(len(p.speaker_pos)):
-			p.speaker_pos[i] = find_word(speaker_pos_word2num, p.speaker_pos[i])
-		p.state = find_word(state_word2num, p.state)
-		p.party = find_word(party_word2num, p.party)
+			p.speaker_pos[i] = find_word(all_word2num, p.speaker_pos[i])
+		p.state = find_word(all_word2num, p.state)
+		p.party = find_word(all_word2num, p.party)
 		for i in range(len(p.context)):
-			p.context[i] = find_word(context_word2num, p.context[i])
+			p.context[i] = find_word(all_word2num, p.context[i])
 		for i in range(len(p.justification)):
-			p.justification[i] = find_word(justification_word2num, p.justification[i])
+			p.justification[i] = find_word(all_word2num, p.justification[i])
+
 
 		test_samples.append(p)
 
