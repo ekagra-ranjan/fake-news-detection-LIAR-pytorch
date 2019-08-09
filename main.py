@@ -112,7 +112,10 @@ def driver(train_file, valid_file, test_file, output_file, dataset, mode, pathMo
         modelCheckpoint = torch.load(pathModel, map_location=lambda storage, loc: storage)
         word2num = modelCheckpoint['word2num']
         hyper = modelCheckpoint['hyper']
-        num_classes = hyper['num_classes']
+        try:
+            num_classes = hyper['num_classes']
+        except:
+            num_classes = 6
         test_samples = test_data_prepare(test_file, word2num, 'test', num_classes, dataset_name)
 
         model = loadModel(word2num, num_classes, hyper)
@@ -166,7 +169,8 @@ dataset_name = 'LIAR-PLUS'
 # mode = 'train'
 mode = 'test'
 # pathModel = None
-pathModel = 'm-basic-num_classes-6-09082019-205746-epoch-9-val_acc-0.235.pth.tar'
+pathModel = 'm-fake-net-num_classes-2-test_acc-0.633.pth.tar'
+# pathModel = 'm-fake-net-num_classes-6-test_acc-0.249.pth.tar'
 
 if mode == 'test':
     assert pathModel != None, "pathModel cannot be None if testing"
