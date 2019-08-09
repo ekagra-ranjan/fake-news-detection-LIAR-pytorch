@@ -8,7 +8,7 @@ from test import test, test_data_prepare
 from model import Net
 from model_baseline import BaselineNet
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="2"
 
 
 def loadModel(word2num, num_classes, hyper):
@@ -25,7 +25,7 @@ def loadModel(word2num, num_classes, hyper):
     
     # Construct model instance
     print('  Constructing network model...')
-    model = Net(
+    model = BaselineNet(
                 len(all_word2num),
                 num_classes,
                 embed_dim = hyper['embed_dim'],
@@ -78,11 +78,11 @@ def driver(train_file, valid_file, test_file, output_file, dataset, mode, pathMo
     
 
     #---Hyperparams
-    nnArchitecture = 'basic'
+    nnArchitecture = 'fake-net'
     lr = hyper['lr']
     epoch = hyper['epoch']
     use_cuda = True
-    num_classes = 6
+    num_classes = hyper['num_classes']
 
 
     assert num_classes in [2, 6]
@@ -111,8 +111,9 @@ def driver(train_file, valid_file, test_file, output_file, dataset, mode, pathMo
 
         modelCheckpoint = torch.load(pathModel, map_location=lambda storage, loc: storage)
         word2num = modelCheckpoint['word2num']
-        test_samples = test_data_prepare(test_file, word2num, 'test', num_classes, dataset_name)
         hyper = modelCheckpoint['hyper']
+        num_classes = hyper['num_classes']
+        test_samples = test_data_prepare(test_file, word2num, 'test', num_classes, dataset_name)
 
         model = loadModel(word2num, num_classes, hyper)
         
@@ -133,6 +134,7 @@ def driver(train_file, valid_file, test_file, output_file, dataset, mode, pathMo
 #---HYPERPARAMETERS
 
 hyper = {
+'num_classes': 6,
 'epoch': 10,
 'lr': 0.001,
 'embed_dim': 100,
@@ -155,16 +157,16 @@ hyper = {
 'justification_lstm_nlayers': 2,
 'justification_lstm_bidirectional': True,
 
-'dropout_query': 0.7,
+'dropout_query': 0.5,
 'dropout_features': 0.7
 }
 
 dataset_name = 'LIAR-PLUS'
 
-mode = 'train'
-# mode = 'test'
+# mode = 'train'
+mode = 'test'
 # pathModel = None
-pathModel = 'm-basic-num_classes-2-epoch-1-val_acc-0.539-09082019-062710.pth.tar'
+pathModel = 'm-basic-num_classes-6-09082019-205746-epoch-9-val_acc-0.235.pth.tar'
 
 if mode == 'test':
     assert pathModel != None, "pathModel cannot be None if testing"

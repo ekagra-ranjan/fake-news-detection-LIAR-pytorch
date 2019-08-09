@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 import numpy as np
+import math
 
 
 class Net(nn.Module):
@@ -173,7 +174,6 @@ class Net(nn.Module):
 		_, (justification_, _) = self.justification_lstm(justification_)
 		justification_ = F.max_pool1d(justification_, self.justification_hidden_dim).view(1, -1)
 		
-		# import pdb; pdb.set_trace()
 		# Statement
 		query = torch.cat((subject_, speaker_, speaker_pos_, state_, party_, context_, justification_), 1)
 		query = F.leaky_relu(self.fc_query(query))
@@ -186,8 +186,10 @@ class Net(nn.Module):
 			conv.weight = nn.Parameter(conv.weight * query_conv)
 
 		statement_ = self.embedding(statement).unsqueeze(0) # 1*W*D -> 1*1*W*D
-		# attention
+		# Attention
+		# import pdb; pdb.set_trace()
 		alpha = (query_att * statement_).sum(dim=-1).view(-1, 1)
+		alpha = F.softmax(alpha / math.sqrt(self.embed_dim), dim=0)
 		statement_ = alpha * statement_
 		statement_ = [F.relu(conv(statement_)).squeeze(3) for conv in self.statement_convs] # 1*1*W*1 -> 1*Conv-filters*(W-1) x len(convs)
 		statement_ = [F.max_pool1d(i, i.size(2)).squeeze(2) for i in statement_] # 1*Conv-filters*1 -> 1*Conv-filters x len(convs)
