@@ -15,5 +15,20 @@ the architecture. For more detailed explanation of the approach read the [report
 
 Run `main.py` which is the driver of the experiments. To train a model change the variable `mode` in `main.py` to `train`. For evaluating a saved model, change `mode` to `test` and put the name of the saved model in the variable `pathModel`. To run LIAR dataset, change the variable `dataset_name` to `LIAR` and if you want to run LIAR-PLUS dataset then change `dataset_name` to `LIAR-PLUS`.
 
+
+# Citation:
+Please cite the paper if you found it useful in your work.
+```bibtex
+@misc{ranjan2019fake,
+    author = {Ekagra Ranjan},
+    title = {Fake News Detection by Learning Convolution Filters through Contextualized Attention},
+    year = {2019},
+    publisher = {GitHub},
+    journal = {GitHub repository},
+    howpublished = {\url{https://github.com/ekagra-ranjan/fake-news-detection-LIAR-pytorch}},
+}
+```
+
+
 ## Acknowledgement
 I would like to thank [FangJun Zhang](https://github.com/zfjmike) for open-sourcing the code for LIAR dataset in his [repo](https://github.com/zfjmike/fake-news-detection) which served as the starting point for my work.
