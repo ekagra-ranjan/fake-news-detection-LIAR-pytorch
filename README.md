@@ -9,7 +9,7 @@ The [LIAR dataset](https://github.com/thiagorainmaker77/liar_dataset) consists o
 
 ## Methodology
 Instead of directly extracting features from Statement, we employ an attention mechanism to use the given side information (subject, speaker, job, state, party, context and justification) to attend over the given statement to check its truthfulness. The attention mechanism makes the process of feature extraction from statement contextualized based on side information. See Fig. 1 for the graphical representation of
-the architecture. For more detailed explanation of the approach read the [paper](https://github.com/ekagra-ranjan/fake-news-detection-LIAR-pytorch/blob/master/report.pdf).
+the architecture. For more detailed explanation of the approach read the [paper](https://www.researchgate.net/publication/341378920_Fake_News_Detection_by_Learning_Convolution_Filters_through_Contextualized_Attention).
 
 ## How to Use
 
