@@ -19,13 +19,13 @@ Run `main.py` which is the driver of the experiments. To train a model change th
 # Citation:
 Please cite the paper if you found it useful in your work.
 ```bibtex
-@misc{ranjan2019fake,
-    author = {Ekagra Ranjan},
-    title = {Fake News Detection by Learning Convolution Filters through Contextualized Attention},
-    year = {2019},
-    publisher = {GitHub},
-    journal = {GitHub repository},
-    howpublished = {\url{https://github.com/ekagra-ranjan/fake-news-detection-LIAR-pytorch}},
+@unknown{unknown,
+author = {Ranjan, Ekagra},
+year = {2019},
+month = {08},
+pages = {},
+title = {Fake News Detection by Learning Convolution Filters through Contextualized Attention},
+doi = {10.13140/RG.2.2.20829.84968}
 }
 ```
 
