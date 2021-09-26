@@ -16,7 +16,7 @@ the architecture. For more detailed explanation of the approach read the [paper]
 Run `main.py` which is the driver of the experiments. To train a model change the variable `mode` in `main.py` to `train`. For evaluating a saved model, change `mode` to `test` and put the name of the saved model in the variable `pathModel`. To run LIAR dataset, change the variable `dataset_name` to `LIAR` and if you want to run LIAR-PLUS dataset then change `dataset_name` to `LIAR-PLUS`.
 
 
-# Citation:
+## Citation:
 Please cite the paper if you found it useful in your work.
 ```bibtex
 @unknown{unknown,
